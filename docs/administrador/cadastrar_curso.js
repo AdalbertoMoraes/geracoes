@@ -1,6 +1,3 @@
-const API_KEY = "AIzaSyAuAMT0zwSTaTvMnEsmDns1Gl-Hl2Cz8Dc";
-const SHEET_ID = "1dl3eGzwgKLmoeAIJ3mKH5X045uG_lsoc7DNQdWNy5eM";
-
 function cadastrarCurso() {
   const descricao = document.getElementById("descricao").value.trim();
   const mensagem = document.getElementById("mensagem");
@@ -10,31 +7,29 @@ function cadastrarCurso() {
     return;
   }
 
-  const id = "CURSO_" + Date.now(); // Gera ID único
+  const body = { descricao };
 
-  const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Base_Cursos!A2:append?valueInputOption=USER_ENTERED&key=${API_KEY}`;
-
-  const body = {
-    values: [[id, descricao]]
-  };
-
-  fetch(endpoint, {
+  fetch("http://localhost:3000/cursos", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify(body)
   })
     .then(response => response.json())
     .then(data => {
-      if (data.updates && data.updates.updatedCells > 0) {
-        mensagem.textContent = "Curso cadastrado com sucesso!";
+      if (data.mensagem) {
+        mensagem.textContent = "✅ " + data.mensagem;
         document.getElementById("descricao").value = "";
+      } else if (data.erro) {
+        mensagem.textContent = "❌ " + data.erro;
       } else {
-        mensagem.textContent = "Erro ao cadastrar curso.";
-        console.error("Resposta inesperada:", data);
+        mensagem.textContent = "⚠️ Erro inesperado.";
+        console.log(data);
       }
     })
     .catch(error => {
-      mensagem.textContent = "Erro de conexão.";
+      mensagem.textContent = "Erro de conexão com a API.";
       console.error("Erro:", error);
     });
 }
